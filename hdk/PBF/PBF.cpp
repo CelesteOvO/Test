@@ -8,6 +8,14 @@
 #include <utility>
 #include <execution>
 
+Vector my_cross(const Vector& v1, const Vector& v2) {
+    float x = v1.y() * v2.z() - v1.z() * v2.y();
+    float y = v1.z() * v2.x() - v1.x() * v2.z();
+    float z = v1.x() * v2.y() - v1.y() * v2.x();
+
+    return Vector(x, y, z);
+}
+
 PbfSolver::PbfSolver(real _r, Vector _b) : NeighborBuilder(_r),MaxBound(_b / 2.)
 {
     PolyKernel::set_radius(_r);
@@ -73,11 +81,11 @@ void PbfSolver::solve_density_constraints() {
     int iter = 0;
     while(iter < MAX_ITERATIONS)
     {
-     build_neighbors();
-/*      compute_density();
+        build_neighbors();
+        compute_density();
         compute_lambda();
         compute_delta_p();
-        update_predict_position();*/
+        update_predict_position();
         iter++;
     }
 }
@@ -136,8 +144,70 @@ void PbfSolver::update_position_and_velocity(real dt) {
     _for_each_fluid_particle([&](size_t i, Vector x_i)
     {
         Fluid->v[i] = (Fluid->pred_x[i] - Fluid->x[i]) / dt;
-        Fluid->x[i] = Fluid->pred_x[i];
     });
+
+    if(ENABLE_VISCOSITY)
+    {
+        real c_v = FLUID_VISCOSITY;
+        _for_each_fluid_particle([&](size_t i, Vector x_i)
+        {
+            Vector viscosity_force{0, 0, 0};
+            _for_each_neighbor_fluid(i, [&](size_t j, Vector x_j)
+            {
+                Vector r = Fluid->pred_x[i] - Fluid->pred_x[j];
+                real r_len = r.length();
+                if(r_len > 1e-6)
+                {
+                    Vector u = Fluid->v[i] - Fluid->v[j];
+                    u *= PolyKernel::W(r) * Fluid->V[j];
+                    viscosity_force += u;
+                }
+            });
+            Fluid->v[i] = Fluid->v[i] - c_v * viscosity_force;
+        });
+    }
+
+    /*if(ENABLE_VORTICITY)
+    {
+        _for_each_fluid_particle([&](size_t i, Vector x_i)
+        {
+            Vector vorticity{0, 0, 0};
+            Vector N{0, 0, 0};
+            Vector curl{0, 0, 0};
+            Vector curl_x{0, 0, 0};
+            Vector curl_y{0, 0, 0};
+            Vector curl_z{0, 0, 0};
+
+            _for_each_neighbor_fluid(i, [&](size_t j, Vector x_j)
+            {
+                Vector r = Fluid->pred_x[i] - Fluid->pred_x[j];
+                real r_len = r.length();
+                if(r_len > 1e-6)
+                {
+                    Vector u = Fluid->v[i] - Fluid->v[j];
+                    Vector gradW = PolyKernel::gradW(r);
+                    Vector curl_ij = my_cross(u, gradW);
+                    curl += curl_ij;
+                    curl_x += my_cross(u,PolyKernel::gradW(r + Vector(0.01, 0, 0)));
+                    curl_y += my_cross(u,PolyKernel::gradW(r + Vector(0, 0.01, 0)));
+                    curl_z += my_cross(u,PolyKernel::gradW(r + Vector(0, 0, 0.01)));
+                }
+            });
+
+            real curl_len = curl.length();
+            N.x() = curl_x.length() - curl_len;
+            N.y() = curl_y.length() - curl_len;
+            N.z() = curl_z.length() - curl_len;
+            N = N.normalize();
+            vorticity = my_cross(N, curl) * FLUID_VORTICITY;
+            Fluid->v[i] += vorticity * dt;
+        });
+    }*/
+
+    _for_each_fluid_particle([&](size_t i, Vector x_i)
+     {
+         Fluid->x[i] = Fluid->pred_x[i];
+     });
 }
 
 void PbfSolver::enforce_boundary() {
@@ -240,7 +310,6 @@ void PbfSolver::_for_each_neighbor_fluid(size_t i, const std::function<void(size
 void PbfSolver::_for_each_fluid_particle_pred(const std::function<void(size_t, Vector)> &f) {
     parallel_for(Fluid->size, [&](size_t i) { f(i, Fluid->pred_x[i]); });
 }
-
 
 
 

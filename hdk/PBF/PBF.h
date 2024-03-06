@@ -34,8 +34,9 @@ struct PbfParamCPU
     real FLUID_PARTICLE_RADIUS = 0.01;
     real FLUID_REST_DENSITY = 1000.0f;
 
-    real FLUID_VISCOSITY = 0.01;
+    real FLUID_VISCOSITY = 0.1;
     real FLUID_SURFACE_TENSION = 0.01;
+    real FLUID_VORTICITY = 0.01;
     real BOUNDARY_VISCOSITY = 0;
 
     real EPSILON = 1e-6;
@@ -43,6 +44,10 @@ struct PbfParamCPU
 
     Vector GRAVITY = Vector(0, -9.8, 0);
     bool TOP_OPEN = true;
+
+    bool ENABLE_VISCOSITY = true;
+    bool ENABLE_SURFACE_TENSION = true;
+    bool ENABLE_VORTICITY = true;
 };
 
 struct PbfSolver : public PbfParamCPU
