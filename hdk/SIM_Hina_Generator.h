@@ -20,6 +20,11 @@
 #include <SIM/SIM_Time.h>
 #include <SIM/SIM_Utils.h>
 
+#include <SIM/SIM_ScalarField.h>
+#include <SIM/SIM_VectorField.h>
+#include <SIM/SIM_MatrixField.h>
+#include <SIM/SIM_FieldSampler.h>
+
 #include <PRM/PRM_Name.h>
 #include <PRM/PRM_Template.h>
 #include <PRM/PRM_Shared.h>
@@ -44,14 +49,14 @@
 #define CHECK_NULL_RETURN_BOOL(ptr) \
 if (!ptr) \
 { \
-error_msg.appendSprintf("%s::NULL POINTER Exception, From %s\n", ptr->getDataType().c_str(), DATANAME); \
+error_msg.appendSprintf("NULL POINTER Exception, From %s\n", DATANAME); \
 return false; \
 }
 
 #define CHECK_NULL_RETURN_VOID(ptr) \
 if (!ptr) \
 { \
-error_msg.appendSprintf("%s::NULL POINTER Exception, From %s\n", ptr->getDataType().c_str(), DATANAME); \
+error_msg.appendSprintf("NULL POINTER Exception, From %s\n", DATANAME); \
 }
 
 #define SIM_HINA_GEOMETRY_CLASS(NAME, ...) \
@@ -59,7 +64,6 @@ class SIM_Hina_##NAME : public SIM_GeometryCopy \
 { \
 public: \
     static const char *DATANAME; \
-    bool Configured = false; \
     mutable GU_DetailHandle my_detail_handle; \
     mutable UT_WorkBuffer error_msg; \
     __VA_ARGS__ \
@@ -83,7 +87,6 @@ protected: \
 void SIM_Hina_##NAME::initializeSubclass() \
 { \
     SIM_GeometryCopy::initializeSubclass(); \
-    this->Configured = false; \
     this->error_msg.clear(); \
 	my_detail_handle.clear(); \
     _init_##NAME(); \
@@ -92,7 +95,6 @@ void SIM_Hina_##NAME::makeEqualSubclass(const SIM_Data *source) \
 { \
     SIM_GeometryCopy::makeEqualSubclass(source); \
     const SIM_Hina_##NAME *src = SIM_DATA_CASTCONST(source, SIM_Hina_##NAME); \
-    this->Configured = src->Configured; \
     this->error_msg = src->error_msg; \
     this->my_detail_handle = src->my_detail_handle; \
     _makeEqual_##NAME(src); \
@@ -298,11 +300,7 @@ PRMS.emplace_back(PRM_FLT, SIZE, &NAME, Default##NAME.data());
 #define HINA_GEOMETRY_ATTRIBUTE_DFSPH_KAPPA_DIVERGENCE "df_kappa_divergence"
 #define HINA_GEOMETRY_ATTRIBUTE_DFSPH_DENSITY_ADV "df_density_adv"
 #define HINA_GEOMETRY_ATTRIBUTE_DFSPH_D_DENSITY "df_d_density"
-
-#define HINA_GEOMETRY_ATTRIBUTE_PBF_PREDICTED_POSITION "pbf_pred_pos"
-#define HINA_GEOMETRY_ATTRIBUTE_PBF_LAMBDA "pbf_lambda"
-#define HINA_GEOMETRY_ATTRIBUTE_PBF_DELTA_POSITION "pbf_delta_pos"
-#define HINA_GEOMETRY_ATTRIBUTE_PBF_ACCELERATION_EXTERNAL "pbf_a_ext"
+#define HINA_GEOMETRY_ATTRIBUTE_PBF "pbf_p_x"
 
 #define HINA_GEOMETRY_ATTRIBUTE_TYPE_STRING "HINA_STRING"
 #define HINA_GEOMETRY_ATTRIBUTE_TYPE_INT "HINA_INT"
@@ -372,7 +370,6 @@ class SIM_Hina_##NAME : public SIM_Collider \
 { \
 public: \
 static const char *DATANAME; \
-bool Configured = false; \
 mutable UT_WorkBuffer error_msg; \
 __VA_ARGS__ \
 protected: \
@@ -392,7 +389,6 @@ void _makeEqual(const SIM_Hina_##NAME *src); \
 void SIM_Hina_##NAME::initializeSubclass() \
 { \
     SIM_Collider::initializeSubclass(); \
-    this->Configured = false; \
     this->error_msg.clear(); \
     _init(); \
 } \
@@ -400,7 +396,6 @@ void SIM_Hina_##NAME::makeEqualSubclass(const SIM_Data *source) \
 { \
     SIM_Collider::makeEqualSubclass(source); \
     const SIM_Hina_##NAME *src = SIM_DATA_CASTCONST(source, SIM_Hina_##NAME); \
-    this->Configured = src->Configured; \
     this->error_msg = src->error_msg; \
     _makeEqual(src); \
 } \
@@ -422,16 +417,15 @@ return &DESC; \
 }
 
 #define SIM_HINA_DATA_CLASS(NAME, ...) \
-class SIM_Hina_##NAME : public SIM_Data \
+class SIM_Hina_##NAME : public SIM_Data, SIM_OptionsUser \
 { \
 public: \
     static const char *DATANAME; \
-    bool Configured = false; \
     mutable GU_DetailHandle my_detail_handle; \
     mutable UT_WorkBuffer error_msg; \
     __VA_ARGS__ \
 protected: \
-    explicit SIM_Hina_##NAME(const SIM_DataFactory *factory) : BaseClass(factory) {} \
+    explicit SIM_Hina_##NAME(const SIM_DataFactory *factory) : BaseClass(factory), SIM_OptionsUser(this) {} \
     ~SIM_Hina_##NAME() override = default; \
     void initializeSubclass() override; \
     void makeEqualSubclass(const SIM_Data *source) override; \
@@ -447,7 +441,6 @@ private: \
 void SIM_Hina_##NAME::initializeSubclass() \
 { \
     SIM_Data::initializeSubclass(); \
-    this->Configured = false; \
     this->error_msg.clear(); \
     _init_##NAME(); \
 } \
@@ -455,7 +448,6 @@ void SIM_Hina_##NAME::makeEqualSubclass(const SIM_Data *source) \
 { \
     SIM_Data::makeEqualSubclass(source); \
     const SIM_Hina_##NAME *src = SIM_DATA_CASTCONST(source, SIM_Hina_##NAME); \
-    this->Configured = src->Configured; \
     this->error_msg = src->error_msg; \
     _makeEqual_##NAME(src); \
 } \

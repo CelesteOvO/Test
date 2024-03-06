@@ -1,13 +1,13 @@
-set(HINA_TARGET SIM_Test_Fluid)
+set(SIM_HinaPE_TARGET SIM_Test_Fluid)
 
-file(GLOB_RECURSE HINAPE_EADER *.h)
-file(GLOB_RECURSE HINAPE_SOURCE *.cpp)
+file(GLOB_RECURSE SIM_HinaPE_HEADER *.h)
+file(GLOB_RECURSE SIM_HinaPE_SOURCE *.cpp)
 
 add_library(
-        ${HINA_TARGET}
+        ${SIM_HinaPE_TARGET}
         SHARED
-        ${HINAPE_HEADER}
-        ${HINAPE_SOURCE}
+        ${SIM_HinaPE_HEADER}
+        ${SIM_HinaPE_SOURCE}
 
         Common/Particles.h
         Common/kernels.h
@@ -24,6 +24,11 @@ add_library(
         PBF/GAS_Hina_Solver_PBF.cpp
         PBF/GAS_Hina_Solver_PBF.h
 
+        Rigid/GAS_Hina_Solver_Rigid.cpp
+        Rigid/GAS_Hina_Solver_Rigid.h
+        Rigid/SIM_Hina_RigidBody.cpp
+        Rigid/SIM_Hina_RigidBody.h
+
         GAS_Test_CFL_SubStep.cpp
         GAS_Test_CFL_SubStep.h
         SIM_Hina_Generator.h
@@ -31,29 +36,21 @@ add_library(
 
 # Link Houdini Toolkit
 target_link_libraries(
-        ${HINA_TARGET}
+        ${SIM_HinaPE_TARGET}
         PUBLIC
         Houdini
-        CUDA_CubbyFlow
-        CUDA_HinaPE
-        TreeNSearch
+        HinaPE
+        HinaPE_CUDA
 )
-if (MSVC)
-    target_link_libraries(
-            ${HINA_TARGET}
-            PUBLIC
-            CUDA_NeighborSearch
-    )
-endif ()
 target_include_directories(
-        ${HINA_TARGET}
+        ${SIM_HinaPE_TARGET}
         PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 target_compile_options(
-        ${HINA_TARGET}
+        ${SIM_HinaPE_TARGET}
         PRIVATE
         -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION
 )
-houdini_configure_target(${HINA_TARGET})
+houdini_configure_target(${SIM_HinaPE_TARGET})

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
-project(HinaPE-Houdini)
+project(HinaPE-Houdini LANGUAGES CXX C CUDA)
 set(CMAKE_CXX_STANDARD 17)
 
 # Find Houdini
@@ -16,9 +16,7 @@ find_package(Houdini REQUIRED)
 # Find OpenMP
 find_package(OpenMP)
 if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    link_libraries(OpenMP::OpenMP_CXX)
 endif()
 
 if (MSVC)
@@ -33,9 +31,5 @@ if (MSVC)
     set(CUDA_STANDARD 17)
 endif ()
 
-add_subdirectory(src/CUDA_HinaPE)
-add_subdirectory(src/CUDA_CubbyFlow)
-add_subdirectory(src/CUDA_NeighborSearch)
-add_subdirectory(src/TreeNSearch)
+add_subdirectory(HinaPE)
 add_subdirectory(hdk)
-add_subdirectory(standalone)
