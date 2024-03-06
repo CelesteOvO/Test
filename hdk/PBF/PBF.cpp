@@ -195,7 +195,7 @@ void PbfSolver::update_position_and_velocity(real dt) {
             N.x() = curl_x.length() - curl_len;
             N.y() = curl_y.length() - curl_len;
             N.z() = curl_z.length() - curl_len;
-            N = N.normalize();
+            N.normalize();
             vorticity = my_cross(N, curl) * FLUID_VORTICITY;
             Fluid->v[i] = Fluid->v[i] + vorticity * dt;
         });
