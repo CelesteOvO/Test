@@ -182,16 +182,13 @@ void PbfSolver::update_position_and_velocity(real dt) {
             {
                 Vector r = Fluid->pred_x[i] - Fluid->pred_x[j];
                 real r_len = r.length();
-                if(r_len > 1e-6)
-                {
-                    Vector u = Fluid->v[i] - Fluid->v[j];
-                    Vector gradW = PolyKernel::gradW(r);
-                    Vector curl_ij = my_cross(u, gradW);
-                    curl += curl_ij;
-                    curl_x += my_cross(u,PolyKernel::gradW(r + Vector(0.01, 0, 0)));
-                    curl_y += my_cross(u,PolyKernel::gradW(r + Vector(0, 0.01, 0)));
-                    curl_z += my_cross(u,PolyKernel::gradW(r + Vector(0, 0, 0.01)));
-                }
+                Vector u = Fluid->v[j] - Fluid->v[i];
+                Vector gradW = PolyKernel::gradW(r);
+                Vector curl_ij = my_cross(u, gradW);
+                curl += curl_ij;
+                curl_x += my_cross(u,PolyKernel::gradW(r + Vector(0.01, 0, 0)));
+                curl_y += my_cross(u,PolyKernel::gradW(r + Vector(0, 0.01, 0)));
+                curl_z += my_cross(u,PolyKernel::gradW(r + Vector(0, 0, 0.01)));
             });
 
             real curl_len = curl.length();
@@ -200,7 +197,7 @@ void PbfSolver::update_position_and_velocity(real dt) {
             N.z() = curl_z.length() - curl_len;
             N = N.normalize();
             vorticity = my_cross(N, curl) * FLUID_VORTICITY;
-            Fluid->v[i] += vorticity * dt;
+            Fluid->v[i] = Fluid->v[i] + vorticity * dt;
         });
     }*/
 
