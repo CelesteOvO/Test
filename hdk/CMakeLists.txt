@@ -40,6 +40,8 @@ add_library(
         SemiAnalytical/SIM_Hina_SemiAnalyticalBoundary.h
         SemiAnalytical/GAS_Hina_SemiAnalyticalSolver.cpp
         SemiAnalytical/GAS_Hina_SemiAnalyticalSolver.h
+        SemiAnalytical/LinearBVH.cpp
+        SemiAnalytical/LinearBVH.h
 )
 
 # Link Houdini Toolkit

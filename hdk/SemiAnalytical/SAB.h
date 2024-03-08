@@ -42,6 +42,13 @@ public:
     std::vector<std::vector<size_t>> faces;
     std::vector<AlignedBox> triangleAABBs;
 
+    struct ContactPair {
+        AlignedBox* box_src;
+        AlignedBox* box_tar;
+    };
+    std::vector<ContactPair> contactPairs;
+public:
+    void doCollisionWithLinearBVH(std::vector<AlignedBox> &aabb_src, std::vector<AlignedBox> &aabb_tar);
 };
 
 #endif //HINAPE_HOUDINI_SAB_H
