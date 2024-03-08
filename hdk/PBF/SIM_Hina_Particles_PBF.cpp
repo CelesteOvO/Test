@@ -17,6 +17,7 @@ void SIM_Hina_Particles_PBF::_init_Particles_PBF()
     this->pred_x = nullptr;
     this->delta_p = nullptr;
     this->a_ext = nullptr;
+    this->pointAABB = nullptr;
 }
 
 void SIM_Hina_Particles_PBF::_makeEqual_Particles_PBF(const SIM_Hina_Particles_PBF *src)
@@ -25,6 +26,7 @@ void SIM_Hina_Particles_PBF::_makeEqual_Particles_PBF(const SIM_Hina_Particles_P
     this->pred_x = src->pred_x;
     this->delta_p = src->delta_p;
     this->a_ext = src->a_ext;
+    this->pointAABB = src->pointAABB;
 }
 
 void SIM_Hina_Particles_PBF::_setup_gdp(GU_Detail *gdp) const
@@ -34,6 +36,9 @@ void SIM_Hina_Particles_PBF::_setup_gdp(GU_Detail *gdp) const
     HINA_GEOMETRY_POINT_ATTRIBUTE(HINA_GEOMETRY_ATTRIBUTE_PBF_PREDICTED_POSITION, HINA_GEOMETRY_ATTRIBUTE_TYPE_VECTOR3)
     HINA_GEOMETRY_POINT_ATTRIBUTE(HINA_GEOMETRY_ATTRIBUTE_PBF_DELTA_POSITION, HINA_GEOMETRY_ATTRIBUTE_TYPE_VECTOR3)
     HINA_GEOMETRY_POINT_ATTRIBUTE(HINA_GEOMETRY_ATTRIBUTE_PBF_ACCELERATION_EXTERNAL, HINA_GEOMETRY_ATTRIBUTE_TYPE_VECTOR3)
+
+    HINA_GEOMETRY_POINT_ATTRIBUTE("pboxMin", HINA_GEOMETRY_ATTRIBUTE_TYPE_VECTOR3)
+    HINA_GEOMETRY_POINT_ATTRIBUTE("pboxMax", HINA_GEOMETRY_ATTRIBUTE_TYPE_VECTOR3)
 }
 
 void SIM_Hina_Particles_PBF::commit()
@@ -56,6 +61,10 @@ void SIM_Hina_Particles_PBF::commit()
     GA_RWHandleV3 pred_x_handle = gdp.findPointAttribute(HINA_GEOMETRY_ATTRIBUTE_PBF_PREDICTED_POSITION);
     GA_RWHandleV3 delta_p_handle = gdp.findPointAttribute(HINA_GEOMETRY_ATTRIBUTE_PBF_DELTA_POSITION);
     GA_RWHandleV3 a_ext_handle = gdp.findPointAttribute(HINA_GEOMETRY_ATTRIBUTE_PBF_ACCELERATION_EXTERNAL);
+
+    GA_RWHandleV3 min_handle(gdp.findPointAttribute("pboxMin"));
+    GA_RWHandleV3 max_handle(gdp.findPointAttribute("pboxMax"));
+
     GA_Offset pt_off;
     GA_FOR_ALL_PTOFF(&gdp, pt_off)
         {
@@ -67,5 +76,11 @@ void SIM_Hina_Particles_PBF::commit()
             pred_x_handle.set(pt_off, predX);
             delta_p_handle.set(pt_off, deltaP);
             a_ext_handle.set(pt_off, aExt);
+
+            AlignedBox pBox = (*pointAABB)[pt_off];
+            UT_Vector3 pbMin = pBox.v0;
+            UT_Vector3 pbMax = pBox.v1;
+            min_handle.set(pt_off,pbMin);
+            max_handle.set(pt_off,pbMax);
         }
 }

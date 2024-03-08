@@ -86,6 +86,7 @@ void GAS_Hina_Solver_PBF::init_data(SIM_Hina_Particles_PBF *PBF_particles, SIM_O
     PBF_particles->lambda = &PBFSolverPtr->Fluid->lambda;
     PBF_particles->delta_p = &PBFSolverPtr->Fluid->delta_p;
     PBF_particles->a_ext = &PBFSolverPtr->Fluid->a_ext;
+    PBF_particles->pointAABB = &PBFSolverPtr->Fluid->pointAABB;
 
     inited = true;
 }

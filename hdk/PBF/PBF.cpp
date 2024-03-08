@@ -35,6 +35,8 @@ PbfSolver::PbfSolver(real _r, Vector _b) : NeighborBuilder(_r),MaxBound(_b / 2.)
     Fluid->lambda.reserve(n);
     Fluid->delta_p.reserve(n);
     Fluid->a_ext.reserve(n);
+
+    FLUID_KERNEL_RADIUS = _r;
 }
 
 void PbfSolver::Solve(real dt) {
@@ -43,6 +45,7 @@ void PbfSolver::Solve(real dt) {
     solve_density_constraints();
     update_position_and_velocity(dt);
     enforce_boundary();
+    computeAABB();
 }
 
 void PbfSolver::build_neighbors()
@@ -279,6 +282,7 @@ void PbfSolver::_resize()
         Fluid->lambda.resize(n);
         Fluid->delta_p.resize(n);
         Fluid->a_ext.resize(n);
+        Fluid->pointAABB.resize(n);
     }
 
     if (pre_size == 0)
@@ -306,6 +310,16 @@ void PbfSolver::_for_each_neighbor_fluid(size_t i, const std::function<void(size
 
 void PbfSolver::_for_each_fluid_particle_pred(const std::function<void(size_t, Vector)> &f) {
     parallel_for(Fluid->size, [&](size_t i) { f(i, Fluid->pred_x[i]); });
+}
+
+void PbfSolver::computeAABB() {
+    _for_each_fluid_particle([&](size_t i, Vector x_i)
+     {
+         UT_Vector3 aabb_min = x_i - 0.9 * FLUID_KERNEL_RADIUS;
+         UT_Vector3 aabb_max = x_i + 0.9 * FLUID_KERNEL_RADIUS;
+         AlignedBox point_aabb(aabb_min, aabb_max);
+         Fluid->pointAABB[i] =  point_aabb;
+     });
 }
 
 

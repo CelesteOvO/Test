@@ -9,6 +9,7 @@
 #include "Common/kernels.h"
 #include "Common/emitter.h"
 #include "Common/neighbors.h"
+#include "SemiAnalytical/AlignedBox.h"
 #include <vector>
 #include <UT/UT_Vector3.h>
 
@@ -27,6 +28,8 @@ struct PbfFluidCPU : public FluidCPU
     ScalarArrayCPU lambda;
     VectorArrayCPU delta_p;
     VectorArrayCPU a_ext;
+
+    std::vector<AlignedBox> pointAABB;
 };
 
 struct PbfParamCPU
@@ -48,6 +51,8 @@ struct PbfParamCPU
     bool ENABLE_VISCOSITY = true;
     bool ENABLE_SURFACE_TENSION = true;
     bool ENABLE_VORTICITY = true;
+
+    real FLUID_KERNEL_RADIUS = 0.04;
 };
 
 struct PbfSolver : public PbfParamCPU
@@ -71,6 +76,7 @@ public:
     void update_position_and_velocity(real dt);
     void enforce_boundary();
     void compute_external_a();
+    void computeAABB();
 public:
     void _for_each_fluid_particle(const std::function<void(size_t, Vector)> &);
     void _for_each_neighbor_fluid(size_t, const std::function<void(size_t, Vector)> &);

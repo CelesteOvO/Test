@@ -97,12 +97,6 @@ void SIM_Hina_SemiAnalyticalBoundary::load_gdp(const GU_Detail *gdp_sop)
                 }
                 triangleAABBs->push_back(AlignedBox(min, max));
 
-                /*// 更新三角形的索引
-                v1_handle.set(triangleIndex, polyIndices[0]);
-                v2_handle.set(triangleIndex, polyIndices[i + 1]);
-                v3_handle.set(triangleIndex, polyIndices[i]);
-                min_handle.set(triangleIndex, min);
-                max_handle.set(triangleIndex, max);*/
                 // 更新索引
                 ++triangleIndex;
             }
