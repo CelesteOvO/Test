@@ -9,7 +9,11 @@ public:
 	SIM_Result solveObjectsSubclass(SIM_Engine &engine, SIM_ObjectArray &objects, SIM_ObjectArray &newobjects, SIM_ObjectArray &feedbacktoobjects, const SIM_Time &timestep) override;
 	GETSET_DATA_FUNCS_I("MAX_SUBSTEP", MAX_SUBSTEP)
 
+    bool boundary_inited;
+
 protected:
+    void initializeSubclass() override;
+    void makeEqualSubclass(const SIM_Data *source) override;
 	explicit GAS_Test_CFL_SubStep(const SIM_DataFactory *factory) : GAS_SubStep(factory) {}
 	~GAS_Test_CFL_SubStep() override = default;
 	static const SIM_DopDescription	*getDopDescription();

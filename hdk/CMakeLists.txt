@@ -13,8 +13,7 @@ add_library(
         Common/kernels.h
         Common/emitter.h
         Common/neighbors.h
-        PBF/PBF.cpp
-        PBF/PBF.h
+        Common/geometry.h
 
         Base/SIM_Hina_Particles.cpp
         Base/SIM_Hina_Particles.h
@@ -23,6 +22,8 @@ add_library(
         PBF/SIM_Hina_Particles_PBF.h
         PBF/GAS_Hina_Solver_PBF.cpp
         PBF/GAS_Hina_Solver_PBF.h
+        PBF/PBF.cpp
+        PBF/PBF.h
 
         Rigid/GAS_Hina_Solver_Rigid.cpp
         Rigid/GAS_Hina_Solver_Rigid.h
@@ -32,6 +33,13 @@ add_library(
         GAS_Test_CFL_SubStep.cpp
         GAS_Test_CFL_SubStep.h
         SIM_Hina_Generator.h
+        SemiAnalytical/SAB.cpp
+        SemiAnalytical/SAB.h
+        SemiAnalytical/AlignedBox.h
+        SemiAnalytical/SIM_Hina_SemiAnalyticalBoundary.cpp
+        SemiAnalytical/SIM_Hina_SemiAnalyticalBoundary.h
+        SemiAnalytical/GAS_Hina_SemiAnalyticalSolver.cpp
+        SemiAnalytical/GAS_Hina_SemiAnalyticalSolver.h
 )
 
 # Link Houdini Toolkit

@@ -1,10 +1,24 @@
 #include "GAS_Test_CFL_SubStep.h"
+#include "SemiAnalytical/SIM_Hina_SemiAnalyticalBoundary.h"
 
 #include <SIM/SIM_ObjectArray.h>
 #include <SIM/SIM_DopDescription.h>
 #include <PRM/PRM_Template.h>
 #include <PRM/PRM_Default.h>
 #include <Base/SIM_Hina_Particles.h>
+
+void GAS_Test_CFL_SubStep::initializeSubclass() {
+    SIM_Data::initializeSubclass();
+    this->boundary_inited = false;
+}
+
+void GAS_Test_CFL_SubStep::makeEqualSubclass(const SIM_Data *source) {
+    SIM_Data::makeEqualSubclass(source);
+    const GAS_Test_CFL_SubStep *src = SIM_DATA_CASTCONST(source, GAS_Test_CFL_SubStep);
+
+    this->boundary_inited = src->boundary_inited;
+}
+
 
 const SIM_DopDescription *GAS_Test_CFL_SubStep::getDopDescription()
 {
@@ -38,14 +52,25 @@ SIM_Solver::SIM_Result GAS_Test_CFL_SubStep::solveObjectsSubclass(SIM_Engine &en
 			return res;
 	}
 
+
 	for (int j = 0; j < objects.size(); ++j)
 	{
 		SIM_Object *obj = objects(j);
 		SIM_Hina_Particles *particles = SIM_DATA_GET(*obj, SIM_Hina_Particles::DATANAME, SIM_Hina_Particles);
-        if(particles == nullptr)
-            std::cout << "particles is null" << std::endl;
 		if (particles && particles->x != nullptr)
 			particles->commit();
+
+        if(!boundary_inited)
+        {
+            std::vector<SIM_Hina_SemiAnalyticalBoundary *> semi_analytical_boundaries = FetchAllSemiAnalyticalBoundaries(obj);
+            for (auto &semi_analytical_boundary: semi_analytical_boundaries)
+                if (semi_analytical_boundary && semi_analytical_boundary->vertices != nullptr)
+                    semi_analytical_boundary->commit();
+            boundary_inited = true;
+        }
 	}
 	return SIM_Solver::SIM_SOLVER_SUCCESS;
 }
+
+
+
