@@ -124,27 +124,54 @@ void SIM_Hina_SemiAnalyticalBoundary::commit()
     GA_RWHandleV3 min_handle(gdp.findPrimitiveAttribute("bboxMin"));
     GA_RWHandleV3 max_handle(gdp.findPrimitiveAttribute("bboxMax"));
 
-    for(auto pos : *vertices)
+    if(gdp.getNumPoints() == 0)
     {
-        GA_Offset pt_off = gdp.appendPoint();
-        gdp.setPos3(pt_off,pos);
-    }
+        for(auto pos : *vertices)
+        {
+            GA_Offset pt_off = gdp.appendPoint();
+            gdp.setPos3(pt_off,pos);
+        }
 
-    for(size_t i = 0; i < faces->size(); ++i)
-    {
-        GA_Primitive *prim = gdp.appendPrimitive(GEO_PRIMPOLY);
+        for(size_t i = 0; i < faces->size(); ++i)
+        {
+            GA_Primitive *prim = gdp.appendPrimitive(GEO_PRIMPOLY);
 
-        // 获取新面的偏移量
-        GA_Offset prim_off = prim->getMapOffset();
+            // 获取新面的偏移量
+            GA_Offset prim_off = prim->getMapOffset();
 
-        // 设置v1, v2, v3, bboxMin, bboxMax的属性
-        v1_handle.set(prim_off, (*faces)[i][0]);
-        v2_handle.set(prim_off, (*faces)[i][1]);
-        v3_handle.set(prim_off, (*faces)[i][2]);
+            // 设置v1, v2, v3, bboxMin, bboxMax的属性
+            v1_handle.set(prim_off, (*faces)[i][0]);
+            v2_handle.set(prim_off, (*faces)[i][1]);
+            v3_handle.set(prim_off, (*faces)[i][2]);
 
-        auto aabb = (*triangleAABBs)[i];
-        min_handle.set(prim_off, aabb.v0);
-        max_handle.set(prim_off, aabb.v1);
+            auto aabb = (*triangleAABBs)[i];
+            min_handle.set(prim_off, aabb.v0);
+            max_handle.set(prim_off, aabb.v1);
+        }
+    }else{
+        GA_Offset pt_off;
+        GA_FOR_ALL_PTOFF(&gdp, pt_off)
+        {
+            size_t pt_idx = offset2index[pt_off];
+            UT_Vector3 pos = (*vertices)[pt_idx];
+            gdp.setPos3(pt_off, pos);
+        }
+
+        size_t triangleIndex = 0;
+        const GEO_Primitive *prim;
+        GA_FOR_ALL_PRIMITIVES(&gdp, prim)
+        {
+            GA_Offset prim_off = prim->getMapOffset();
+            v1_handle.set(prim_off, (*faces)[triangleIndex][0]);
+            v2_handle.set(prim_off, (*faces)[triangleIndex][1]);
+            v3_handle.set(prim_off, (*faces)[triangleIndex][2]);
+
+            auto aabb = (*triangleAABBs)[triangleIndex];
+            min_handle.set(prim_off, aabb.v0);
+            max_handle.set(prim_off, aabb.v1);
+
+            ++triangleIndex;
+        }
     }
 }
 

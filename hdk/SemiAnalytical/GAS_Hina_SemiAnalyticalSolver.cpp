@@ -34,7 +34,7 @@ bool GAS_Hina_SemiAnalyticalSolver::_solve(SIM_Engine &engine, SIM_Object *obj, 
 
     if(SemiAnalyticalSolverPtr)
     {
-
+        SemiAnalyticalSolverPtr->Solve(timestep);
     }
 
     return true;

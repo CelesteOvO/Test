@@ -60,14 +60,14 @@ SIM_Solver::SIM_Result GAS_Test_CFL_SubStep::solveObjectsSubclass(SIM_Engine &en
 		if (particles && particles->x != nullptr)
 			particles->commit();
 
-        if(!boundary_inited)
-        {
+/*        if(!boundary_inited)
+        {*/
             std::vector<SIM_Hina_SemiAnalyticalBoundary *> semi_analytical_boundaries = FetchAllSemiAnalyticalBoundaries(obj);
             for (auto &semi_analytical_boundary: semi_analytical_boundaries)
                 if (semi_analytical_boundary && semi_analytical_boundary->vertices != nullptr)
                     semi_analytical_boundary->commit();
-            boundary_inited = true;
-        }
+/*            boundary_inited = true;
+        }*/
 	}
 	return SIM_Solver::SIM_SOLVER_SUCCESS;
 }
