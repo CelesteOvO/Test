@@ -53,7 +53,7 @@ void GAS_Hina_SemiAnalyticalSolver::init_data(SIM_Hina_SemiAnalyticalBoundary *b
         return;
     SIM_GeometryAutoReadLock lock(boundary_sop);
     const GU_Detail *gdp = lock.getGdp();
-    boundary->load_gdp(gdp);
+    boundary->load_gdp(gdp); // 先单项考虑他静止，所以只在最初的时候load一次
 
     inited = true;
 }

@@ -39,7 +39,7 @@ struct SemiAnalyticalParamCPU
 struct SemiAnalyticalSolver : public SemiAnalyticalParamCPU
 {
 public:
-    SemiAnalyticalSolver();
+    SemiAnalyticalSolver(std::vector<AlignedBox> &pointAABBs);
     void Solve(real dt);
 public:
     VectorArrayCPU vertices;

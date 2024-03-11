@@ -17,7 +17,7 @@ class CollisionDetectionBroadPhase
 {
 public:
     CollisionDetectionBroadPhase(std::vector<AlignedBox>& aabb_src, std::vector<AlignedBox>& aabb_tar);
-
+    ~CollisionDetectionBroadPhase() = default;
     std::vector<AlignedBox> aabb_src;
     std::vector<AlignedBox> aabb_tar;
     std::vector<std::vector<size_t>> contactPairs;
@@ -27,6 +27,8 @@ public:
     void doCollisionWithLinearBVH();
     void CDBP_RequestIntersectionNumberBVH(LinearBVH bvh, bool selfCollision);
     void CDBP_RequestIntersectionIdsBVH(LinearBVH bvh, bool selfCollision);
+public:
+    void updateAABB(std::vector<AlignedBox>& aabb_src, std::vector<AlignedBox>& aabb_tar);
 };
 
 #endif //HINAPE_HOUDINI_COLLISIONDETECTIONBROADPHASE_H

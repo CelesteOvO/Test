@@ -62,4 +62,12 @@ void CollisionDetectionBroadPhase::CDBP_RequestIntersectionIdsBVH(LinearBVH bvh,
 
 }
 
+void CollisionDetectionBroadPhase::updateAABB(std::vector<AlignedBox> &aabb_src, std::vector<AlignedBox> &aabb_tar) {
+    this->aabb_src = aabb_src;
+    this->aabb_tar = aabb_tar;
+    mCounter.resize(aabb_src.size());
+    contactPairs.resize(aabb_src.size() * aabb_tar.size());
+
+}
+
 
