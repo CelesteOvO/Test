@@ -6,6 +6,7 @@
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
 #include <bitset>
+#include <stack>
 
 void LinearBVH::construct(std::vector<AlignedBox> &aabb) {
     size_t num = aabb.size();
@@ -41,11 +42,10 @@ void LinearBVH::construct(std::vector<AlignedBox> &aabb) {
     LBVH_ConstructBinaryRadixTree(mAllNodes, mSortedAABBs, aabb, mMortonCodes, mSortedObjectIds);
 
     std::fill(mFlags.begin(), mFlags.end(), 0);
-
-
+    LBVH_CalculateBoundingBox(mSortedAABBs, mAllNodes, mFlags);
 }
 
-void LinearBVH::clear() {
+void LinearBVH::release() {
     mAllNodes.clear();
     mCenters.clear();
     mSortedAABBs.clear();
@@ -168,9 +168,119 @@ void LinearBVH::LBVH_CalculateBoundingBox(std::vector<AlignedBox> &sortedAABBs, 
         size_t idx = bvhNodes[i + N - 1].parent;
         while (idx != -1)
         {
+            auto* flags_ptr = reinterpret_cast<std::atomic<size_t>*>(flags.data()); // 获取指向flags数据的原子指针
+            std::atomic<size_t>& flag = flags_ptr[idx]; // 获取位置idx的原子引用
+            size_t expected = 0;
+            size_t desired = 1;
+            bool success = flag.compare_exchange_strong(expected, desired); // 尝试设置新值
+            int old = success ? 0 : flag.load(); // 获取旧值
+            if (old == 0)
+            {
+                return;
+            }
 
+            const size_t l_idx = bvhNodes[idx].left;
+            const size_t r_idx = bvhNodes[idx].right;
+            const AlignedBox l_aabb = sortedAABBs[l_idx];
+            const AlignedBox r_aabb = sortedAABBs[r_idx];
+            sortedAABBs[idx] = l_aabb.merge(r_aabb);
+
+            idx = bvhNodes[idx].parent;
         }
     }
+}
+
+size_t LinearBVH::requestIntersectionNumber(const AlignedBox &queryBox, const int queryId)
+{
+    std::array<int, 64> buffer;
+
+    std::stack<int> stack;
+
+    uint N = mSortedObjectIds.size();
+
+    // Traverse nodes starting from the root.
+    uint ret = 0;
+    int idx = 0;
+    do
+    {
+        // Check each child node for overlap.
+        int idxL = mAllNodes[idx].left;
+        int idxR = mAllNodes[idx].right;
+        bool overlapL = queryBox.checkOverlap(mSortedAABBs[idxL]);
+        bool overlapR = queryBox.checkOverlap(mSortedAABBs[idxR]);
+
+        // Query overlaps a leaf node => report collision.
+        if (overlapL && mAllNodes[idxL].isLeaf()) {
+            int objId = mSortedObjectIds[idxL - N + 1];
+            if(objId > queryId) ret++;
+        }
+        if (overlapR && mAllNodes[idxR].isLeaf()) {
+            int objId = mSortedObjectIds[idxR - N + 1];
+            if (objId > queryId) ret++;
+        }
+
+        // Query overlaps an internal node => traverse.
+        bool traverseL = overlapL && !mAllNodes[idxL].isLeaf();
+        bool traverseR = overlapR && !mAllNodes[idxR].isLeaf();
+
+        if (!traverseL && !traverseR) {
+            idx = stack.size() != 0 ? stack.top() : -1; // pop
+            if (stack.size() != 0) stack.pop();
+        }
+        else
+        {
+            idx = traverseL ? idxL : idxR;
+            if (traverseL && traverseR)
+                stack.push(idxR); // push
+        }
+    } while (idx != -1);
+
+    return ret;
+}
+
+void LinearBVH::requestIntersectionIds(std::vector<size_t> &ids, const AlignedBox &queryBox, const int queryId)
+{
+    std::deque<int> stack;
+
+    size_t N = mSortedObjectIds.size();
+
+    int idx = 0;
+    const int EMPTY = -1;
+
+    do
+    {
+        int idxL = mAllNodes[idx].left;
+        int idxR = mAllNodes[idx].right;
+        bool overlapL = queryBox.checkOverlap(mSortedAABBs[idxL]);
+        bool overlapR = queryBox.checkOverlap(mSortedAABBs[idxR]);
+
+        if (overlapL && mAllNodes[idxL].isLeaf()) {
+            int objId = mSortedObjectIds[idxL - N + 1];
+            if (objId > queryId)
+                ids.push_back(objId);
+        }
+
+        if (overlapR && mAllNodes[idxR].isLeaf()) {
+            int objId = mSortedObjectIds[idxR - N + 1];
+            if (objId > queryId)
+                ids.push_back(objId);
+        }
+
+        bool traverseL = (overlapL && !mAllNodes[idxL].isLeaf());
+        bool traverseR = (overlapR && !mAllNodes[idxR].isLeaf());
+
+        if (!traverseL && !traverseR) {
+            idx = !stack.empty() ? stack.back() : EMPTY;
+            if (!stack.empty())
+                stack.pop_back();
+        }
+        else
+        {
+            idx = (traverseL) ? idxL : idxR;
+            if (traverseL && traverseR)
+                stack.push_back(idxR);
+        }
+    } while (idx != EMPTY);
 }
 
 

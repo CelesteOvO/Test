@@ -63,6 +63,22 @@ public:
 
         return true;
     }
+    AlignedBox merge(const AlignedBox& box) const{
+        AlignedBox ret;
+        ret.v0 = UT_Vector3(std::min(v0.x(), box.v0.x()), std::min(v0.y(), box.v0.y()), std::min(v0.z(), box.v0.z()));
+        ret.v1 = UT_Vector3(std::max(v1.x(), box.v1.x()), std::max(v1.y(), box.v1.y()), std::max(v1.z(), box.v1.z()));
+        return ret;
+    }
+    bool checkOverlap(const AlignedBox& box) const{
+        for (int i = 0; i < 3; i++)
+        {
+            if (v1[i] <= box.v0[i] || v0[i] >= box.v1[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
     UT_Vector3 v0;
     UT_Vector3 v1;

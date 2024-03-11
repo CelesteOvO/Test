@@ -6,6 +6,7 @@
 #define HINAPE_HOUDINI_SAB_H
 
 #include "AlignedBox.h"
+#include "CollisionDetectionBroadPhase.h"
 #include <vector>
 #include <UT/UT_Vector3.h>
 
@@ -38,17 +39,15 @@ struct SemiAnalyticalParamCPU
 struct SemiAnalyticalSolver : public SemiAnalyticalParamCPU
 {
 public:
+    SemiAnalyticalSolver();
+    void Solve(real dt);
+public:
     VectorArrayCPU vertices;
     std::vector<std::vector<size_t>> faces;
     std::vector<AlignedBox> triangleAABBs;
 
-    struct ContactPair {
-        AlignedBox* box_src;
-        AlignedBox* box_tar;
-    };
-    std::vector<ContactPair> contactPairs;
+    std::shared_ptr<CollisionDetectionBroadPhase> mBroadPhaseCD;
 public:
-    void doCollisionWithLinearBVH(std::vector<AlignedBox> &aabb_src, std::vector<AlignedBox> &aabb_tar);
 };
 
 #endif //HINAPE_HOUDINI_SAB_H

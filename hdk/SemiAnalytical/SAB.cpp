@@ -6,9 +6,12 @@
 #include "SAB.h"
 #include "PBF/PBF.h"
 
+SemiAnalyticalSolver::SemiAnalyticalSolver() {
+    vertices.clear();
+    faces.clear();
+    triangleAABBs.clear();
+}
 
-void
-SemiAnalyticalSolver::doCollisionWithLinearBVH(std::vector<AlignedBox> &aabb_src, std::vector<AlignedBox> &aabb_tar)
-{
+void SemiAnalyticalSolver::Solve(real dt) {
 
 }
