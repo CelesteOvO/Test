@@ -46,7 +46,9 @@ void GAS_Hina_Solver_PBF::_makeEqual(const GAS_Hina_Solver_PBF *src)
 bool GAS_Hina_Solver_PBF::_solve(SIM_Engine &engine, SIM_Object *obj, SIM_Time time, SIM_Time timestep)
 {
     SIM_Hina_Particles_PBF *PBF_particles = SIM_DATA_CAST(getGeometryCopy(obj, GAS_NAME_GEOMETRY), SIM_Hina_Particles_PBF);
-    CHECK_NULL_RETURN_BOOL(PBF_particles)
+    // CHECK_NULL_RETURN_BOOL(PBF_particles) // 会出现红色的感叹号但是其实没关系，如果不是PBF类型，就直接不执行下面的操作就好了
+    if (PBF_particles == nullptr)
+        return true;
 
     if (!inited)
         init_data(PBF_particles, obj);

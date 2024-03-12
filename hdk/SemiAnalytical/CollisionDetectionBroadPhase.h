@@ -16,7 +16,7 @@ using real = float;
 class CollisionDetectionBroadPhase
 {
 public:
-    CollisionDetectionBroadPhase(std::vector<AlignedBox>& aabb_src, std::vector<AlignedBox>& aabb_tar);
+    CollisionDetectionBroadPhase();
     ~CollisionDetectionBroadPhase() = default;
     std::vector<AlignedBox> aabb_src;
     std::vector<AlignedBox> aabb_tar;

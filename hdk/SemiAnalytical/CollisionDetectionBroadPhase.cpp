@@ -6,12 +6,12 @@
 #include "CollisionDetectionBroadPhase.h"
 #include "LinearBVH.h"
 
-CollisionDetectionBroadPhase::CollisionDetectionBroadPhase(std::vector<AlignedBox> &aabb_src,
-                                                           std::vector<AlignedBox> &aabb_tar) : aabb_src(aabb_src),
-                                                                                                aabb_tar(aabb_tar)
+CollisionDetectionBroadPhase::CollisionDetectionBroadPhase()
 {
-    mCounter.resize(aabb_src.size());
-    contactPairs.resize(aabb_src.size() * aabb_tar.size());
+    aabb_src.clear();
+    aabb_tar.clear();
+    contactPairs.clear();
+    mCounter.clear();
 }
 
 void CollisionDetectionBroadPhase::doCollisionWithLinearBVH()
@@ -67,7 +67,6 @@ void CollisionDetectionBroadPhase::updateAABB(std::vector<AlignedBox> &aabb_src,
     this->aabb_tar = aabb_tar;
     mCounter.resize(aabb_src.size());
     contactPairs.resize(aabb_src.size() * aabb_tar.size());
-
 }
 
 

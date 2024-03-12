@@ -6,14 +6,15 @@
 #include "SAB.h"
 #include "PBF/PBF.h"
 
-SemiAnalyticalSolver::SemiAnalyticalSolver(std::vector<AlignedBox> &pointAABBs) {
+SemiAnalyticalSolver::SemiAnalyticalSolver() {
     vertices.clear();
     faces.clear();
     triangleAABBs.clear();
 
-    mBroadPhaseCD = std::make_shared<CollisionDetectionBroadPhase>(pointAABBs, triangleAABBs);
+    mBroadPhaseCD = std::make_shared<CollisionDetectionBroadPhase>();
 }
 
 void SemiAnalyticalSolver::Solve(real dt) {
-    mBroadPhaseCD->doCollisionWithLinearBVH(); // 得到contact list
+    /*mBroadPhaseCD->updateAABB();
+    mBroadPhaseCD->doCollisionWithLinearBVH(); // 得到contact list*/
 }

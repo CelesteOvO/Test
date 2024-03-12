@@ -60,6 +60,9 @@ SIM_Solver::SIM_Result GAS_Test_CFL_SubStep::solveObjectsSubclass(SIM_Engine &en
 		if (particles && particles->x != nullptr)
 			particles->commit();
 
+        if(particles == nullptr)
+            continue;
+
 /*        if(!boundary_inited)
         {*/
             std::vector<SIM_Hina_SemiAnalyticalBoundary *> semi_analytical_boundaries = FetchAllSemiAnalyticalBoundaries(obj);
