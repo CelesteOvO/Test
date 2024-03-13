@@ -40,7 +40,7 @@ struct SemiAnalyticalSolver : public SemiAnalyticalParamCPU
 {
 public:
     SemiAnalyticalSolver();
-    void Solve(real dt);
+    void Solve(real dt, std::vector<AlignedBox>& aabb_point, std::vector<AlignedBox>& aabb_triangle) const;
 public:
     VectorArrayCPU vertices;
     std::vector<std::vector<size_t>> faces;

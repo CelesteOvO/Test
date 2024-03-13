@@ -44,6 +44,8 @@ add_library(
         SemiAnalytical/LinearBVH.h
         SemiAnalytical/CollisionDetectionBroadPhase.cpp
         SemiAnalytical/CollisionDetectionBroadPhase.h
+        SemiAnalytical/GAS_Hina_SemiAnalytical_PBF.cpp
+        SemiAnalytical/GAS_Hina_SemiAnalytical_PBF.h
 )
 
 # Link Houdini Toolkit

@@ -8,6 +8,7 @@
 #include <Rigid/GAS_Hina_Solver_Rigid.h>
 #include <SemiAnalytical/SIM_Hina_SemiAnalyticalBoundary.h>
 #include <SemiAnalytical/GAS_Hina_SemiAnalyticalSolver.h>
+#include <SemiAnalytical/GAS_Hina_SemiAnalytical_PBF.h>
 
 
 void initializeSIM(void *)
@@ -21,4 +22,5 @@ void initializeSIM(void *)
     IMPLEMENT_DATAFACTORY(GAS_Hina_Solver_Rigid)
     IMPLEMENT_DATAFACTORY(SIM_Hina_SemiAnalyticalBoundary)
     IMPLEMENT_DATAFACTORY(GAS_Hina_SemiAnalyticalSolver)
+    IMPLEMENT_DATAFACTORY(GAS_Hina_SemiAnalytical_PBF)
 }

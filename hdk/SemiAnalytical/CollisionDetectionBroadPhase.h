@@ -16,7 +16,7 @@ using real = float;
 class CollisionDetectionBroadPhase
 {
 public:
-    CollisionDetectionBroadPhase();
+    CollisionDetectionBroadPhase() = default;
     ~CollisionDetectionBroadPhase() = default;
     std::vector<AlignedBox> aabb_src;
     std::vector<AlignedBox> aabb_tar;
@@ -29,6 +29,8 @@ public:
     void CDBP_RequestIntersectionIdsBVH(LinearBVH bvh, bool selfCollision);
 public:
     void updateAABB(std::vector<AlignedBox>& aabb_src, std::vector<AlignedBox>& aabb_tar);
+    /// For Test
+    void printAABB();
 };
 
 #endif //HINAPE_HOUDINI_COLLISIONDETECTIONBROADPHASE_H

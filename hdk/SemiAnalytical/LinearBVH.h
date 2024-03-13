@@ -21,9 +21,9 @@ public:
         return left == -1 && right == -1;
     }
 
-    size_t parent;
-    size_t left;
-    size_t right;
+    int parent;
+    int left;
+    int right;
 };
 
 class LinearBVH

@@ -19,18 +19,37 @@ void LinearBVH::construct(std::vector<AlignedBox> &aabb) {
 
         mSortedAABBs.resize(2 * num - 1);
         mAllNodes.resize(2 * num - 1);
+        /// 这个'2 * num - 1'大小的设置是因为你在构造一个二叉树结构。
+        /// 对于一个完全二叉树来说，如果你有n个叶子节点（这里是num个对象）那么总的节点数（包括叶子节点和内部节点）就会是'2 * num - 1'。
     }
+
+    /*/// Test
+    std::cout << "AABB size: " << aabb.size() << std::endl;
+    std::cout << "Center size: " << mCenters.size() << std::endl;
+    std::cout << "Morton size: " << mMortonCodes.size() << std::endl;
+    std::cout << "SortedObjectIds size: " << mSortedObjectIds.size() << std::endl;
+    std::cout << "Flags size: " << mFlags.size() << std::endl;
+    std::cout << "SortedAABBs size: " << mSortedAABBs.size() << std::endl;
+    std::cout << "AllNodes size: " << mAllNodes.size() << std::endl;*/
 
     LBVH_CalculateCenter(mCenters, aabb);
 
+    // 所有中心点的最小坐标v_min和最大坐标v_max
     auto minmax = thrust::minmax_element(mCenters.begin(), mCenters.end());
     UT_Vector3 v_min = *minmax.first;
     UT_Vector3 v_max = *minmax.second;
-
+    // 所有物体中心点在空间上的最大跨度L,检查L是否接近于零，即坐标点是否过于接近，如果太接近则将L设为1以避免除以接近零的数（这通常用于避免精度问题）。
     fpreal L = std::max(v_max[0] - v_min[0], std::max(v_max[1] - v_min[1], v_max[2] - v_min[2]));
     L = L < (std::numeric_limits<fpreal>::epsilon)() ? fpreal(1) : L;
-
+    // 如果所有的物体中心点都非常接近，那么L的值可能会非常接近零，如果直接用这样的L作为除数，可能会导致结果出现异常（比如无限大或非常大的值）
+    // 所有中心点的范围内选择一个参考点
     UT_Vector3 origin = fpreal(0.5) * (v_min + v_max) - fpreal(0.5) * L;
+
+    /*/// Test
+    std::cout << "v_min: " << v_min << std::endl;
+    std::cout << "v_max: " << v_max << std::endl;
+    std::cout << "L: " << L << std::endl;
+    std::cout << "origin: " << origin << std::endl;*/
 
     LBVH_CalculateMortonCodes(mMortonCodes, mSortedObjectIds, mCenters, origin, L);
     thrust::sort_by_key(
@@ -38,11 +57,17 @@ void LinearBVH::construct(std::vector<AlignedBox> &aabb) {
             mMortonCodes.end(),
             mSortedObjectIds.begin());
 
+    /*/// Test
+    for(size_t i = 0; i < 10; i++){
+        std::cout << "Morton: " << mMortonCodes[i] << std::endl;
+        std::cout << "ObjectId: " << mSortedObjectIds[i] << std::endl;
+    }*/
+
     LBVH_InitialAllNodes(mAllNodes);
-    LBVH_ConstructBinaryRadixTree(mAllNodes, mSortedAABBs, aabb, mMortonCodes, mSortedObjectIds);
+    /*LBVH_ConstructBinaryRadixTree(mAllNodes, mSortedAABBs, aabb, mMortonCodes, mSortedObjectIds);
 
     std::fill(mFlags.begin(), mFlags.end(), 0);
-    LBVH_CalculateBoundingBox(mSortedAABBs, mAllNodes, mFlags);
+    LBVH_CalculateBoundingBox(mSortedAABBs, mAllNodes, mFlags);*/
 }
 
 void LinearBVH::release() {
@@ -58,6 +83,12 @@ void LinearBVH::LBVH_CalculateCenter(std::vector<UT_Vector3> &center, std::vecto
     size_t num = aabb.size();
     for (size_t i = 0; i < num; i++){
         center[i] = (aabb[i].v0 + aabb[i].v1) * 0.5;
+        /*/// Test
+        if(i < 10)
+        {
+            std::cout << "AABB: " << aabb[i].v0 << "," << aabb[i].v1 << std::endl;
+            std::cout << "Center: " << center[i] << std::endl;
+        }*/
     }
 }
 
@@ -73,6 +104,16 @@ void LinearBVH::LBVH_CalculateMortonCodes(std::vector<size_t> &morton, std::vect
 
         morton[i] = m64;
         objectId[i] = i;
+        /// 保存原始顺序；然后在计算Morton码后，会同时得到一个按Morton码排序的objectId列表，这样就可以知道每个对象在按照Morton码排序后的新位置
+
+        /*/// Test
+        if(i < 10)
+        {
+            std::cout << "Center: " << center[i] << std::endl;
+            std::cout << "Scaled: " << scaled << std::endl;
+            std::cout << "Morton: " << m64 << std::endl;
+            std::cout << "ObjectId: " << i << std::endl;
+        }*/
     }
 }
 
@@ -98,6 +139,14 @@ void LinearBVH::LBVH_InitialAllNodes(std::vector<BVHNode> &bvhNodes) {
     for(auto & bvhNode : bvhNodes){
         bvhNode = BVHNode();
     }
+
+    /*/// Test
+    std::cout << "Node size: " << bvhNodes.size() << std::endl;
+    for(auto & bvhNode : bvhNodes){
+        std::cout << "Parent: " << bvhNode.parent << std::endl;
+        std::cout << "Left: " << bvhNode.left << std::endl;
+        std::cout << "Right: " << bvhNode.right << std::endl;
+    }*/
 }
 
 void LinearBVH::LBVH_ConstructBinaryRadixTree(std::vector<BVHNode> &bvhNodes, std::vector<AlignedBox> &sortedAABBs,
@@ -147,10 +196,10 @@ void LinearBVH::LBVH_ConstructBinaryRadixTree(std::vector<BVHNode> &bvhNodes, st
                 s = s + t;
             }
         }
-        size_t gamma = i + s * d + std::min(d, 0);
+        int gamma = i + s * d + std::min(d, 0);
 
-        size_t left_idx = std::min(i, j) == gamma ? gamma + N - 1 : gamma;
-        size_t right_idx = std::max(i, j) == gamma + 1 ? gamma + N : gamma + 1;
+        int left_idx = std::min(i, j) == gamma ? gamma + N - 1 : gamma;
+        int right_idx = std::max(i, j) == gamma + 1 ? gamma + N : gamma + 1;
 
         bvhNodes[i].left = left_idx;
         bvhNodes[i].right = right_idx;

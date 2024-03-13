@@ -6,26 +6,18 @@
 #include "CollisionDetectionBroadPhase.h"
 #include "LinearBVH.h"
 
-CollisionDetectionBroadPhase::CollisionDetectionBroadPhase()
-{
-    aabb_src.clear();
-    aabb_tar.clear();
-    contactPairs.clear();
-    mCounter.clear();
-}
-
 void CollisionDetectionBroadPhase::doCollisionWithLinearBVH()
 {
     LinearBVH bvh;
     bvh.construct(aabb_tar);
 
-    mCounter.resize(aabb_src.size());
+    /*mCounter.resize(aabb_src.size());
     CDBP_RequestIntersectionNumberBVH(bvh, false);
 
     size_t total = std::accumulate(mCounter.begin(), mCounter.end(), 0);
     contactPairs.resize(total);
 
-    CDBP_RequestIntersectionIdsBVH(bvh, false);
+    CDBP_RequestIntersectionIdsBVH(bvh, false);*/
 
     bvh.release();
 }
@@ -67,6 +59,33 @@ void CollisionDetectionBroadPhase::updateAABB(std::vector<AlignedBox> &aabb_src,
     this->aabb_tar = aabb_tar;
     mCounter.resize(aabb_src.size());
     contactPairs.resize(aabb_src.size() * aabb_tar.size());
+}
+
+void CollisionDetectionBroadPhase::printAABB() {
+    std::cout << "Source AABB: " << std::endl;
+    std::cout << "Size: " << aabb_src.size() << std::endl;
+    for(int i = 0; i < 10; i++)
+    {
+        std::cout << "(" << aabb_src[i].v0 << "," << aabb_src[i].v1 << ")" << std::endl;
+    }
+    /*for(auto &aabb : aabb_src)
+    {
+        std::cout << "(" << aabb.v0 << "," << aabb.v1 << ")" << std::endl;
+    }*/
+    /*std::cout << "Target AABB: " << std::endl;
+    for(auto &aabb : aabb_tar)
+    {
+        std::cout << "(" << aabb.v0 << "," << aabb.v1 << ")" << std::endl;
+    }*/
+    /*std::cout << "Contact Pairs: " << std::endl;
+    for(auto &pairs : contactPairs)
+    {
+        for(auto &pair : pairs)
+        {
+            std::cout << pair << " ";
+        }
+        std::cout << std::endl;
+    }*/
 }
 
 
