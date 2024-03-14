@@ -8,6 +8,11 @@
 #include <bitset>
 #include <stack>
 
+std::string toBinary(uint64_t value) {
+    return std::bitset<64>(value).to_string();
+}
+
+
 void LinearBVH::construct(std::vector<AlignedBox> &aabb) {
     size_t num = aabb.size();
 
@@ -58,16 +63,54 @@ void LinearBVH::construct(std::vector<AlignedBox> &aabb) {
             mSortedObjectIds.begin());
 
     /*/// Test
-    for(size_t i = 0; i < 10; i++){
-        std::cout << "Morton: " << mMortonCodes[i] << std::endl;
+    for(size_t i = 0; i < mMortonCodes.size(); i++){
+        std::cout << "Morton: " << toBinary(mMortonCodes[i]) << std::endl;
         std::cout << "ObjectId: " << mSortedObjectIds[i] << std::endl;
     }*/
 
     LBVH_InitialAllNodes(mAllNodes);
-    /*LBVH_ConstructBinaryRadixTree(mAllNodes, mSortedAABBs, aabb, mMortonCodes, mSortedObjectIds);
+    LBVH_ConstructBinaryRadixTree(mAllNodes, mSortedAABBs, aabb, mMortonCodes, mSortedObjectIds);
+
+    /*/// Test
+    std::cout << "AllNodes size: " << mAllNodes.size() << std::endl;
+    for(auto & bvhNode : mAllNodes){
+        std::cout << "Parent: " << bvhNode.parent << std::endl;
+        std::cout << "Left: " << bvhNode.left << std::endl;
+        std::cout << "Right: " << bvhNode.right << std::endl;
+    }*/
+
+    /*/// Test
+    for(auto & mSortedAABB : mSortedAABBs){
+        std::cout << "AABB1: " << mSortedAABB.v0 << "," << mSortedAABB.v1 << std::endl;
+    }
 
     std::fill(mFlags.begin(), mFlags.end(), 0);
-    LBVH_CalculateBoundingBox(mSortedAABBs, mAllNodes, mFlags);*/
+    LBVH_CalculateBoundingBox(mSortedAABBs, mAllNodes, mFlags);
+
+    for(auto & mSortedAABB : mSortedAABBs){
+        std::cout << "AABB2: " << mSortedAABB.v0 << "," << mSortedAABB.v1 << std::endl;
+    }*/
+
+    /*std::vector<AlignedBox> TestAABBs;
+    AlignedBox A1(UT_Vector3(-1,-1,-1), UT_Vector3(-0.5,-0.5,-0.5));
+    AlignedBox A2(UT_Vector3(-1,-1,0), UT_Vector3(-0.5,-0.5,0.5));
+    AlignedBox A3(UT_Vector3(0,0,0), UT_Vector3(0.5,0.5,0.5));
+    AlignedBox A4(UT_Vector3(-1,0,-1), UT_Vector3(-0.5,0.5,-0.5));
+    TestAABBs.push_back(A1);
+    TestAABBs.push_back(A2);
+    TestAABBs.push_back(A3);
+    TestAABBs.push_back(A4);
+
+    for(auto & mSortedAABB : TestAABBs){
+        std::cout << "AABB1: " << mSortedAABB.v0 << "," << mSortedAABB.v1 << std::endl;
+    }
+
+    std::fill(mFlags.begin(), mFlags.end(), 0);
+    LBVH_CalculateBoundingBox(TestAABBs, mAllNodes, mFlags);
+
+    for(auto & mSortedAABB : TestAABBs){
+        std::cout << "AABB2: " << mSortedAABB.v0 << "," << mSortedAABB.v1 << std::endl;
+    }*/
 }
 
 void LinearBVH::release() {
@@ -152,16 +195,17 @@ void LinearBVH::LBVH_InitialAllNodes(std::vector<BVHNode> &bvhNodes) {
 void LinearBVH::LBVH_ConstructBinaryRadixTree(std::vector<BVHNode> &bvhNodes, std::vector<AlignedBox> &sortedAABBs,
                                               std::vector<AlignedBox> &aabbs, std::vector<size_t> &mortonCodes,
                                               std::vector<size_t> &sortedObjectIds) {
-    size_t N = sortedObjectIds.size();
+    size_t N = sortedObjectIds.size(); // 叶子节点（或者物体）的个数
 
     for (int i = 0; i < N; ++i)
     {
         sortedAABBs[i + N - 1] = aabbs[sortedObjectIds[i]];
+        // 对于每个叶子节点，将其AABB存到二叉树的对应位置。因为在二叉树的数组表示中，叶子节点是排在后半部分的。
 
-        if (i >= N - 1)
+        if (i >= N - 1) // 如果这已经是最后一个叶子节点，则不再进行下面的处理
             continue;
 
-        auto delta = [&](int _i, int _j) -> int {
+        auto delta = [&](int _i, int _j) -> int { // 返回的是两个物体的Morton编码的最长公共前缀的长度
             if (_j < 0 || _j >= N)
                 return -1;
             uint64_t value = mortonCodes[_i] ^ mortonCodes[_j];
@@ -170,11 +214,18 @@ void LinearBVH::LBVH_ConstructBinaryRadixTree(std::vector<BVHNode> &bvhNodes, st
         };
 
         int d = delta(i, i + 1) - delta(i, i - 1) > 0 ? 1 : -1;
+        // 确定物体i是更靠近自己前一个物体还是后一个物体
+        // 大于0说明物体i与它后一个物体的Morton编码最长公共前缀长度比物体i与它前一个物体的Morton编码最长公共前缀长度大，物体i与其后一个物体i+1在Morton编码上的相似性更高，也就表示他们在三维空间中的接近程度更高。 物体i应离物体i+1更近。
+
 
         int delta_min = delta(i, i - d);
+        // 是为了计算出物体i和它更远的那个物体（如果d为1，那么更远的那个物体就是i-1；如果d为-1，更远的那个物体就是i+1）的Morton编码的最长公共前缀的长度，也就是delta_min。
 
+        // 进行二分查找，找出最大的长度L（满足delta(i, i + L * d) > delta_min），并在L的范围内进行二分查找，找出最小的长度j（满足delta(i, i + j * d) == delta_node）
         int len_max = 2;
         while (delta(i, i + len_max * d) > delta_min) {
+            // 当delta(i, i + len_max * d) > delta_min成立的时候，说明节点i与节点i+len_max * d的最长公共前缀超过了节点i与它最远的邻居的当前最长公共前缀。
+            // 换句话说，i和i+len_max * d更相似，也就是更临近。在这种情况下，将len_max翻倍，扩大搜索范围
             len_max *= 2;
         }
 

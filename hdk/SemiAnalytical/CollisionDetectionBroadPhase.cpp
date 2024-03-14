@@ -8,6 +8,12 @@
 
 void CollisionDetectionBroadPhase::doCollisionWithLinearBVH()
 {
+    /*std::vector<AlignedBox> AABBs {
+            AlignedBox(UT_Vector3(0, 0, 0), UT_Vector3(1, 1, 1)),
+            AlignedBox(UT_Vector3(4, 4, 4), UT_Vector3(5, 5, 5)),
+            AlignedBox(UT_Vector3(2, 2, 2), UT_Vector3(3, 3, 3)),
+    };*/
+
     LinearBVH bvh;
     bvh.construct(aabb_tar);
 
