@@ -16,14 +16,27 @@ void CollisionDetectionBroadPhase::doCollisionWithLinearBVH()
 
     LinearBVH bvh;
     bvh.construct(aabb_tar);
+    //bvh.construct(AABBs);
 
-    /*mCounter.resize(aabb_src.size());
+    mCounter.resize(aabb_src.size());
+    /*/// Test
+    std::cout << "mCounter size1: " << mCounter.size() << std::endl;
+    for(int i = 0; i < 10; i++)
+    {
+        std::cout << mCounter[i] << std::endl;
+    }*/
     CDBP_RequestIntersectionNumberBVH(bvh, false);
+    /// Test
+    std::cout << "mCounter size2: " << mCounter.size() << std::endl;
+    for(int i = 0; i < 10; i++)
+    {
+        std::cout << mCounter[i] << std::endl;
+    }
 
     size_t total = std::accumulate(mCounter.begin(), mCounter.end(), 0);
     contactPairs.resize(total);
 
-    CDBP_RequestIntersectionIdsBVH(bvh, false);*/
+    CDBP_RequestIntersectionIdsBVH(bvh, false);
 
     bvh.release();
 }

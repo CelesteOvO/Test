@@ -69,7 +69,8 @@ public:
         ret.v1 = UT_Vector3(std::max(v1.x(), box.v1.x()), std::max(v1.y(), box.v1.y()), std::max(v1.z(), box.v1.z()));
         return ret;
     }
-    bool checkOverlap(const AlignedBox& box) const{
+    bool checkOverlap(const AlignedBox& box) const
+    {
         for (int i = 0; i < 3; i++)
         {
             if (v1[i] <= box.v0[i] || v0[i] >= box.v1[i])

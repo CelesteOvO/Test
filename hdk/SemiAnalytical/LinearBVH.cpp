@@ -79,15 +79,15 @@ void LinearBVH::construct(std::vector<AlignedBox> &aabb) {
         std::cout << "Right: " << bvhNode.right << std::endl;
     }*/
 
-    /*/// Test
-    for(auto & mSortedAABB : mSortedAABBs){
+    /// Test
+    /*for(auto & mSortedAABB : mSortedAABBs){
         std::cout << "AABB1: " << mSortedAABB.v0 << "," << mSortedAABB.v1 << std::endl;
-    }
+    }*/
 
     std::fill(mFlags.begin(), mFlags.end(), 0);
     LBVH_CalculateBoundingBox(mSortedAABBs, mAllNodes, mFlags);
 
-    for(auto & mSortedAABB : mSortedAABBs){
+    /*for(auto & mSortedAABB : mSortedAABBs){
         std::cout << "AABB2: " << mSortedAABB.v0 << "," << mSortedAABB.v1 << std::endl;
     }*/
 
@@ -247,7 +247,7 @@ void LinearBVH::LBVH_ConstructBinaryRadixTree(std::vector<BVHNode> &bvhNodes, st
                 s = s + t;
             }
         }
-        int gamma = i + s * d + std::min(d, 0);
+        int gamma = i + s * d + std::min(d, (int)0);
 
         int left_idx = std::min(i, j) == gamma ? gamma + N - 1 : gamma;
         int right_idx = std::max(i, j) == gamma + 1 ? gamma + N : gamma + 1;
@@ -258,7 +258,6 @@ void LinearBVH::LBVH_ConstructBinaryRadixTree(std::vector<BVHNode> &bvhNodes, st
         bvhNodes[left_idx].parent = i;
         bvhNodes[right_idx].parent = i;
     }
-
 }
 
 void LinearBVH::LBVH_CalculateBoundingBox(std::vector<AlignedBox> &sortedAABBs, std::vector<BVHNode> &bvhNodes,
@@ -268,7 +267,7 @@ void LinearBVH::LBVH_CalculateBoundingBox(std::vector<AlignedBox> &sortedAABBs, 
         size_t idx = bvhNodes[i + N - 1].parent;
         while (idx != -1)
         {
-            auto* flags_ptr = reinterpret_cast<std::atomic<size_t>*>(flags.data()); // 获取指向flags数据的原子指针
+            /*auto* flags_ptr = reinterpret_cast<std::atomic<size_t>*>(flags.data()); // 获取指向flags数据的原子指针
             std::atomic<size_t>& flag = flags_ptr[idx]; // 获取位置idx的原子引用
             size_t expected = 0;
             size_t desired = 1;
@@ -277,8 +276,13 @@ void LinearBVH::LBVH_CalculateBoundingBox(std::vector<AlignedBox> &sortedAABBs, 
             if (old == 0)
             {
                 return;
+            }*/
+            unsigned old = flags[idx];
+            if (old == 0) {
+                flags[idx] = 1;
+                return;
             }
-
+            assert(old == 1);
             const size_t l_idx = bvhNodes[idx].left;
             const size_t r_idx = bvhNodes[idx].right;
             const AlignedBox l_aabb = sortedAABBs[l_idx];
@@ -292,9 +296,7 @@ void LinearBVH::LBVH_CalculateBoundingBox(std::vector<AlignedBox> &sortedAABBs, 
 
 size_t LinearBVH::requestIntersectionNumber(const AlignedBox &queryBox, const int queryId)
 {
-    std::array<int, 64> buffer;
-
-    std::stack<int> stack;
+    std::stack<int> myStack;
 
     uint N = mSortedObjectIds.size();
 
@@ -324,14 +326,14 @@ size_t LinearBVH::requestIntersectionNumber(const AlignedBox &queryBox, const in
         bool traverseR = overlapR && !mAllNodes[idxR].isLeaf();
 
         if (!traverseL && !traverseR) {
-            idx = stack.size() != 0 ? stack.top() : -1; // pop
-            if (stack.size() != 0) stack.pop();
+            idx = !myStack.empty() ? myStack.top() : -1; // pop
+            myStack.pop();
         }
         else
         {
             idx = traverseL ? idxL : idxR;
             if (traverseL && traverseR)
-                stack.push(idxR); // push
+                myStack.push(idxR); // push
         }
     } while (idx != -1);
 
@@ -340,7 +342,7 @@ size_t LinearBVH::requestIntersectionNumber(const AlignedBox &queryBox, const in
 
 void LinearBVH::requestIntersectionIds(std::vector<size_t> &ids, const AlignedBox &queryBox, const int queryId)
 {
-    std::deque<int> stack;
+    std::deque<int> myStack;
 
     size_t N = mSortedObjectIds.size();
 
@@ -370,15 +372,15 @@ void LinearBVH::requestIntersectionIds(std::vector<size_t> &ids, const AlignedBo
         bool traverseR = (overlapR && !mAllNodes[idxR].isLeaf());
 
         if (!traverseL && !traverseR) {
-            idx = !stack.empty() ? stack.back() : EMPTY;
-            if (!stack.empty())
-                stack.pop_back();
+            idx = !myStack.empty() ? myStack.back() : EMPTY;
+            if (!myStack.empty())
+                myStack.pop_back();
         }
         else
         {
             idx = (traverseL) ? idxL : idxR;
             if (traverseL && traverseR)
-                stack.push_back(idxR);
+                myStack.push_back(idxR);
         }
     } while (idx != EMPTY);
 }

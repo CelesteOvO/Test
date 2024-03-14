@@ -50,9 +50,9 @@ public:
     std::vector<BVHNode> mAllNodes;
     std::vector<UT_Vector3> mCenters;
     std::vector<AlignedBox> mSortedAABBs;
-    std::vector<size_t> mSortedObjectIds;
-    std::vector<size_t> mFlags;
-    std::vector<size_t> mMortonCodes;
+    std::vector<int> mSortedObjectIds;
+    std::vector<int> mFlags;
+    std::vector<int> mMortonCodes;
 };
 
 
